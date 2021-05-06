@@ -26,7 +26,7 @@
 
 当程序主动使用某个类的时候，如果类还未加载到内存中，则JVM会通过加载、连接、初始化3个步骤：
 
-![img](.\第一版.assets\loader.png)
+![img](./第一版.assets/loader.png)
 
 
 
