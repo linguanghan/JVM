@@ -18,7 +18,7 @@
 (4) 运行时数据区：将内存划分成若干个区，分别完成不同的任务
 (5) 本地方法区：调用C或C++实现的本地方法代码返回的结果
 
-<img src="D:\study\offer\Java\尚硅谷java基础\笔记\JVM\第一版.assets\图片1.png" alt="图片1" style="zoom: 50%;" />
+<img src=".\第一版.assets\图片1.png" alt="图片1" style="zoom: 50%;" />
 
 ### 二、类加载
 
@@ -332,7 +332,7 @@ GC两种类型：轻GC（普通的GC），重GC（全局GC）
 
 > 垃圾回收器的组合关系
 
-![img](D:\study\offer\Java\尚硅谷java基础\笔记\JVM\第一版.assets\y.jpg)
+![img](.\第一版.assets\y.jpg)
 
 ##### 5.1、Serial 收集器、Serial Old收集器
 
@@ -409,7 +409,7 @@ GC两种类型：轻GC（普通的GC），重GC（全局GC）
 >
 > * G1将整个Java堆分成约2048个大小相同的独立的Region块，所有Region的大小相同。
 >
->   ![img](D:\study\offer\Java\尚硅谷java基础\笔记\JVM\第一版.assets\ppp.jpg)
+>   ![img](.\第一版.assets\ppp.jpg)
 >
 > * 一个region 有可能属于Eden， Survivor 或者Old/Tenured 内存区域。但是一个region只可能属于一个角色。
 >
@@ -429,7 +429,7 @@ GC两种类型：轻GC（普通的GC），重GC（全局GC）
 >* 如果不同，通过cardTable把相关引用信息记录到引用指向对象的所在Region对应的Remember Set中
 >* 当进行垃圾收集时，在GC根节点的枚举范围加入到Remember Set中
 >
->![img](D:\study\offer\Java\尚硅谷java基础\笔记\JVM\第一版.assets\q.jpg)
+>![img](.\第一版.assets\q.jpg)
 
 ---
 
@@ -448,7 +448,7 @@ GC两种类型：轻GC（普通的GC），重GC（全局GC）
 
 * 年轻代GC（标记复制）：应用程序分配内存，当年轻代的Eden区用尽时开始年轻代回收过程；G1的**年轻代收集阶段**是一个**并行的独占式收集器**。在年轻代回收的时候，G1 GC暂停所有应用线程，启动多线程执行年轻代回收（主要回收Eden区和Survivor区的垃圾）
 
-  ![img](D:\study\offer\Java\尚硅谷java基础\笔记\JVM\第一版.assets\qq.jpg)
+  ![img](.\第一版.assets\qq.jpg)
 
 * 当堆内存使用达到一定的阈值（默认45%），开始老年代并发标记过程。计算各个区域的存活对象和GC回收比例，并进行排序，**识别可以混合回收的区域**。
 
