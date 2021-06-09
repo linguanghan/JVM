@@ -142,6 +142,8 @@ Class文件格式采用一种类似于C语言结构体的伪数据结构来存�
 - 父类索引用于确定这个类的父类的全限定名。由于Java语言不允许多重继承，所以父类索引只有一个，除了java.1ang.Object之外，所有的Java类都有父类，因此除了java.lang.Object外，所有Java类的父类索引都不为e。
 - 接口索引集合就用来描述这个类实现了哪些接口，这些被实现的接口将按implements语句（如果这个类本身是一个接口，则应当是extends语句）后的接口顺序从左到右排列在接口索引集合中。
 
+**...其他的结构详见课本**
+
 #### 2、 类加载过程
 
 当程序主动使用某个类的时候，如果类还未加载到内存中，则JVM会通过加载、连接、初始化3个步骤：
@@ -150,12 +152,28 @@ Class文件格式采用一种类似于C语言结构体的伪数据结构来存�
 
 
 
+> 补：类的使用过程看
+>
+> ![img](第一版.assets/68747470733a2f2f696d672d626c6f672e6373646e696d672e636e2f696d675f636f6e766572742f63366535613633333339626232353734623962353261396564313465653963352e706e67)
+
 ##### 2.1 加载
 
-​		加载指的是将类的class文件读入到内存，并为之创建一个java.lang.Class对象，也就是说，当程序中使用任何类时，系统都会为之建立一个java.lang.Class对象。
+​		加载指的是将类的class文件读入到内存，并为之创建一个java.lang.Class对象，也就是说，当程序中使用任何类时，系统都会为之建立一个java.lang.Class对象。该对象就是Java类在JVM内存中的一个快照，JVM将从字节码文件中解析出常量池、类字段、类方法等信息存储到类模板中，这样JVM在运行期间便能通过类模板而获取Java类中的任意信息，能够对Java类的成员变量进行遍历，也能进行Java方法的调用。**反射就的机制就是基于这个基础。如果JVM没有将Java类的信息存储起来，则JVM在运行期无法反射。**
 
 * 系统加载器：JVM提供
 * 继承ClassLoader类来创建自己的类加载器
+
+> 补充：加载过程：
+>
+> * **通过类名，获取类的二进制数据流**
+> * 解析类的二进制数据流为**方法区内的数据结构**（JVM类模型）
+> * **创建java.lang.Class类实例**，表示该类型。作为方法区这个类的各种数据的访问入口
+>
+> 类将.class文件加载至元空间(JDK1.8之后)后，会在堆中创建一个Java.lang.Class对象，用来封装类位于方法区内的数据结构，该Class对象是在加载类的过程中创建的，每个类都对应有一个Class类型的对象。
+>
+> ![image-20210609094842947](第一版.assets/image-20210609094842947.png)
+
+
 
 > 类加载器的数据来源
 >
@@ -172,15 +190,45 @@ Class文件格式采用一种类似于C语言结构体的伪数据结构来存�
 
 验证的四部曲：
 
-![验证阶段示意图](第一版.assets/yanzheng.png)
+![image-20210430221736546](第一版.assets/test.jpg)
 
 **2）准备：**类准备阶段负责为类的**静态变量分配内存**，并设置默认初始值。
+
+> 补充：Java并不支持boolean类型，对于boolean类型，内部实现是int，由于int的默认值是0，故对应的，boolean的默认值就是false。
+>
+> 注意：
+>
+> ```java
+> // 一般情况：static final修饰的基本数据类型、字符串类型字面量会在准备阶段赋值
+> private static final String str = "Hello world";
+> // 特殊情况：static final修饰的引用类型不会在准备阶段赋值，而是在初始化阶段赋值
+> private static final String str = new String("Hello world");
+> ```
+>
+> - 注意这里不会为实例变量分配初始化，类变量会分配在方法区中，而实例变量是会随着对象一起分配到Java堆中。
 
 **3）解析：**将类的二进制数据中的符号引用替换成直接引用。
 
 ##### 2.3 初始化
 
 ​	初始化是为类的静态变量赋予正确的初始值，准备阶段和初始化阶段看似有点矛盾，其实是不矛盾的，如果类中有语句：private static int a = 10，它的执行过程是这样的，首先字节码文件被加载到内存后，先进行链接的验证这一步骤，验证通过后准备阶段，给a分配内存，因为变量a是static的，所以此时a等于int类型的默认初始值0，即a=0,然后到解析（后面在说），到初始化这一步骤时，才把a的真正的值10赋给a,此时a=10。
+
+> 补充
+>
+> **最终结论**：使用static+final修饰，且显示赋值中不涉及到方法或构造器调用的基本数据类到或String类型的显式财值，是在链接阶段的准备环节进行。
+>
+> ```java
+> public static final int INT_CONSTANT = 10;                                // 在链接阶段的准备环节赋值
+> public static final int NUM1 = new Random().nextInt(10);                  // 在初始化阶段clinit>()中赋值
+> public static int a = 1;                                                  // 在初始化阶段<clinit>()中赋值
+> 
+> public static final Integer INTEGER_CONSTANT1 = Integer.valueOf(100);     // 在初始化阶段<clinit>()中赋值
+> public static Integer INTEGER_CONSTANT2 = Integer.valueOf(100);           // 在初始化阶段<clinit>()中概值
+> 
+> public static final String s0 = "helloworld0";                            // 在链接阶段的准备环节赋值
+> public static final String s1 = new String("helloworld1");                // 在初始化阶段<clinit>()中赋值
+> public static String s2 = "hellowrold2";                                  // 在初始化阶段<clinit>()中赋值
+> ```
 
 #### 3 、类加载时机
 
@@ -195,7 +243,45 @@ Class文件格式采用一种类似于C语言结构体的伪数据结构来存�
 
  对于一个final类型的静态变量，如果该变量的值在编译时就可以确定下来，那么这个变量相当于“宏变量”。Java编译器会在编译时直接把这个变量出现的地方替换成它的值，因此即使程序使用该静态变量，也不会导致该类的初始化。反之，如果final类型的静态Field的值不能在编译时确定下来，则必须等到运行时才可以确定该变量的值，如果通过该类来访问它的静态变量，则会导致该类被初始化。
 
+> 补：
+>
+> * 类、类的加载器、类的实例之间的引用关系
+>
+>   * 在类加载器的内部实现中，用一个Java集合来存放所加载类的引用；另一方面，一个Class对象总是会引用它的类加载器，调用Class对象的getClassLoader()方法，就能获得它的类加载器。由此可见，代表**某个类的Class实例与其类的加载器之间为双向关联关系。**
+>   * 一个类的实例总是引用代表这个类的Class对象。在Object类中定义了getClass()方法，这个方法返回代表对象所属类的Class对象的引用。此外，所有的java类都有一个静态属性class，它引用代表这个类的Class对象。
+>
+> * 类的生命周期
+>
+>   当Sample类被加载、链接和初始化后，它的生命周期就开始了。当代表Sample类的Class对象不再被引用，即不可触及时，Class对象就会结束生命周期，Sample类在方法区内的数据也会被卸载，从而结束Sample类的生命周期。
+>
+>   ![image-20210609104754843](第一版.assets/image-20210609104754843.png)
+
 #### 4、 类加载器
+
+> 补：类加载器的作用：
+>
+> ClassLoader负责通过各种方式将Class信息的二进制数据流读入JVM内部，转换为一个与目标类对应的java.lang.Class对象实例。然后交给Java虚拟机进行链接、初始化等操作。因此，**ClassLoader在整个装载阶段，只能影响到类的加载，而无法通过ClassLoader去改变类的链接和初始化行为。至于它是否可以运行，则由Execution Engine决定。**
+>
+> 面试题：补充 Class.forName()和ClassLoader.loadClass 对比？
+>
+> Class.forName(className)方法，内部实际调用的方法是Class.forName(className,true,classloader); =>默认是需要初始化的
+>
+> ClassLoader.loadClass(className)，方法，内部实际调用的方法是 ClassLoader.loadClass(className,false);=>默认不进行链接，**不进行链接意味着不进行包括初始化等一些列步骤，那么静态块和静态对象就不会得到执行**
+
+
+
+**类加载的分类：显式加载、隐式加载**
+
+```java
+//隐式加载
+User user=new User();
+//显式加载，并初始化
+Class clazz=Class.forName("com.test.java.User");
+//显式加载，但不初始化
+ClassLoader.getSystemClassLoader().loadClass("com.test.java.Parent"); 
+```
+
+
 
 三个重要的`ClassLoader`，除了 `BootstrapClassLoader` 其他类加载器均由 Java 实现且全部继承自`java.lang.ClassLoader`：
 
@@ -203,7 +289,21 @@ Class文件格式采用一种类似于C语言结构体的伪数据结构来存�
 * **ExtensionClassLoader(扩展类加载器)** ：主要负责加载目录 `%JRE_HOME%/lib/ext` 目录下的jar包和类，或被 `java.ext.dirs` 系统变量所指定的路径下的jar包。
 * **AppClassLoader(应用程序类加载器)** :面向我们用户的加载器，负责加载当前应用classpath下的所有jar包和类。
 
-#### 5、 类加载机制--双亲委派机制
+
+
+#### 5、 类加载机制
+
+##### 5.1、类加载机制的基本特征
+
+双亲委派模型不是所有类加载都遵循这个模型，有的时候，启动类加载器所加载的类型，是可能要加载用户代码的，比如JDK内部的ServiceProvider/ServiceLoader机制，用户可以在标准API框架上，提供自己的实现，JDK也需要提供些默认的参考实现。
+
+**可见性：**子类加载器可以访问父类加载器，但是父类加载器不能访问子类加载器。
+
+**单一性：**由于父加载器的类型对于子加载器是可见的，所以父加载器中加载过的类型，就不会在子加载器中重复加载。
+
+
+
+##### 5.2、双亲委派机制
 
 ​		加载的时候，**首先会把该请求委派该父类加载器**的 `loadClass()` 处理，因此所有的请求最终都应该传送到顶层的启动类加载器 `BootstrapClassLoader` 中。**当父类加载器无法处理时，才由自己来处理。**当父类加载器为null时，会使用启动类加载器 `BootstrapClassLoader` 作为父类加载器。
 
